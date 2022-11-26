@@ -137,3 +137,5 @@ GRAPHENE = {
         'graphql_jwt.middleware.JSONWebTokenMiddleware',
     ]
 }
+
+AUTH_USER_MODEL = 'account.User'

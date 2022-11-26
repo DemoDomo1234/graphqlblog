@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, email, name, body, image, password=None,
+    def create_user(self, email, username, name, body, image, password=None,
         is_admin=False, is_staff=False, is_active=True,
         is_superuser=True):
         if not email:
@@ -12,15 +12,15 @@ class MyUserManager(BaseUserManager):
         else:
             email=self.normalize_email(email),
             user=self.model(email=email, name=name, body=body,
-                image=image)
+                image=image, username=username)
             user.set_password(password)
             user.save(using=self._db)
             return user
 
     def create_superuser(self, email, body,
-            image, name, password=None ):
+            image, name, username, password=None ):
         user = self.create_user(name=name, email=email, body=body,
-            image=image, password=password)
+            image=image, username=username, password=password)
         user.is_superuser = True
         user.is_admin = True
         user.is_staff = True
