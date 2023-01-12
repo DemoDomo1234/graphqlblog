@@ -4,6 +4,7 @@ from graphene_django.types import DjangoObjectType, ObjectType
 from .models import User
 from graphql_jwt.decorators import login_required
 
+
 class UserType(DjangoObjectType):
     class Meta: 
         model = User
@@ -12,13 +13,15 @@ class UserType(DjangoObjectType):
             'body', 'image', 'folower', 'notifications',
             )  
 
-class Query(graphene.ObjectType):
-    user = graphene.Field(UserType, id=graphene.String())
 
-    def resolve_user(root, info, **kwargs):
-        # Querying a detail
-        return User.objects.get(id=kwargs['id'])
- 
+class Query(graphene.ObjectType):
+    user = graphene.Field(UserType, id=graphene.ID())
+
+    def resolve_user(root, info, id, **kwargs):
+        # Querying a object
+        return User.objects.get(id=id)
+
+
 class UserInput(graphene.InputObjectType):
     username = graphene.String()
     name = graphene.String()
@@ -26,55 +29,60 @@ class UserInput(graphene.InputObjectType):
     body = graphene.String()
     image = graphene.String()
 
+
 class CreateUser(graphene.Mutation):
     class Arguments:
         input = UserInput(required=True)
 
     coment = graphene.Field(UserType)
 
-    @login_required
-    @classmethod
-    def mutate(cls, root, info, input):
-        user = User()
-        user.username = input.username
-        user.name = input.name
-        user.email = input.email
-        user.body = input.body
-        user.image = input.image
 
+    @staticmethod
+    def mutate(root, info, input):
+        user = User.objects.create(
+        username = input.username, name = input.name,
+        email = input.email, body = input.body,
+        image = input.image,
+        )
         user.save()
         return CreateUser(user=user)
 
+
 class UpdateUser(graphene.Mutation):
     class Arguments:
-        input = UserInput(required=True)
-        id = graphene.ID()
+        input = UserInput(required=False)
+        id = graphene.ID(required=True)
 
     user = graphene.Field(UserType)
     
     @login_required
-    @classmethod
-    def mutate(self, cls, root, info, input, id):
+    @staticmethod
+    def mutate(root, info, input, id):
         user = User.objects.get(pk=id)
-        if self.request.user.id == user.id:
-            user.name = input.name
-            user.email = input.email
-            user.body = input.body
-            user.image = input.image
-            user.save()
+        if info.context.user.id == user.id:
+            if input.name != None :
+                user.name = input.name
+            if input.email != None :
+                user.email = input.email
+            if input.body != None :
+                user.body = input.body
+            if input.image != None :
+                user.image = input.image
+        user.save()
         return UpdateUser(user=user)
+
 
 class FolowUser(graphene.Mutation):
     class Arguments:
-        id = graphene.ID()
+        id = graphene.ID(required=True)
 
     user = graphene.Field(UserType)
     
     @login_required
-    @classmethod
-    def mutate(self, cls, root, info, id):
+    @staticmethod
+    def mutate(root, info, id):
         user = User.objects.get(pk=id)
-        myuser = self.request.user
+        myuser = info.context.user
         if myuser not in user.folower.all() :
             user.folower.add(myuser)
         else:
@@ -82,23 +90,25 @@ class FolowUser(graphene.Mutation):
 
         return FolowUser(user=user)
 
+
 class NotyUser(graphene.Mutation):
     class Arguments:
-        id = graphene.ID()
+        id = graphene.ID(required=True)
 
     user = graphene.Field(UserType)
     
     @login_required
-    @classmethod
-    def mutate(self, cls, root, info, id):
+    @staticmethod
+    def mutate(root, info, id):
         user = User.objects.get(pk=id)
-        myuser = self.request.user
+        myuser = info.context.user
         if user not in user.notifications.all() :
             user.notifications.add(myuser)
         else:
             user.notifications.remove(myuser)
 
         return NotyUser(user=user)
+
 
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
@@ -108,5 +118,4 @@ class Mutation(graphene.ObjectType):
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
-
-account_schema = graphene.Schema(query=Query, mutation=Mutation)
+ 
