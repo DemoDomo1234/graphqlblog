@@ -1,4 +1,4 @@
-from django.db import models
+from djongo import models
 from account.models import User
 
 class Blog(models.Model):
