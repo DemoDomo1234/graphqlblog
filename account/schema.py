@@ -10,7 +10,7 @@ class UserType(DjangoObjectType):
         model = User
         fields = (
             'id', 'username', 'name', 'email',
-            'body', 'image', 'folower', 'notifications',
+            'body', 'image', 'follower', 'notifications',
             )  
 
 
@@ -34,15 +34,15 @@ class CreateUser(graphene.Mutation):
     class Arguments:
         input = UserInput(required=True)
 
-    coment = graphene.Field(UserType)
+    comment = graphene.Field(UserType)
 
 
     @staticmethod
     def mutate(root, info, input):
         user = User.objects.create(
-        username = input.username, name = input.name,
-        email = input.email, body = input.body,
-        image = input.image,
+        username=input.username, name=input.name,
+        email=input.email, body=input.body,
+        image=input.image,
         )
         user.save()
         return CreateUser(user=user)
@@ -60,19 +60,19 @@ class UpdateUser(graphene.Mutation):
     def mutate(root, info, input, id):
         user = User.objects.get(pk=id)
         if info.context.user.id == user.id:
-            if input.name != None :
+            if input.name != None:
                 user.name = input.name
-            if input.email != None :
+            if input.email != None:
                 user.email = input.email
-            if input.body != None :
+            if input.body != None:
                 user.body = input.body
-            if input.image != None :
+            if input.image != None:
                 user.image = input.image
         user.save()
         return UpdateUser(user=user)
 
 
-class FolowUser(graphene.Mutation):
+class FollowUser(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
 
@@ -82,16 +82,16 @@ class FolowUser(graphene.Mutation):
     @staticmethod
     def mutate(root, info, id):
         user = User.objects.get(pk=id)
-        myuser = info.context.user
-        if myuser not in user.folower.all() :
-            user.folower.add(myuser)
+        request_user = info.context.user
+        if request_user not in user.follower.all() :
+            user.follower.add(request_user)
         else:
-            user.folower.remove(myuser)
+            user.follower.remove(request_user)
 
-        return FolowUser(user=user)
+        return FollowUser(user=user)
 
 
-class NotyUser(graphene.Mutation):
+class NotificationUser(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
 
@@ -101,20 +101,20 @@ class NotyUser(graphene.Mutation):
     @staticmethod
     def mutate(root, info, id):
         user = User.objects.get(pk=id)
-        myuser = info.context.user
-        if user not in user.notifications.all() :
-            user.notifications.add(myuser)
+        request_user = info.context.user
+        if request_user not in user.notifications.all() :
+            user.notifications.add(request_user)
         else:
-            user.notifications.remove(myuser)
+            user.notifications.remove(request_user)
 
-        return NotyUser(user=user)
+        return NotificationUser(user=user)
 
 
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
-    folow_user = FolowUser.Field()
-    noty_user = NotyUser.Field()
+    follow_user = FollowUser.Field()
+    notification_user = NotificationUser.Field()
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()

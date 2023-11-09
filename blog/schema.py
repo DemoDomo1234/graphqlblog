@@ -5,7 +5,6 @@ from .models import Blog
 from account.models import User
 
 
-
 class BlogType(DjangoObjectType):
     class Meta: 
         model = Blog
@@ -46,10 +45,10 @@ class CreateBlog(graphene.Mutation):
     def mutate(root, info, input, **kwargs):
         author = User.objects.get(id=input.author)
         blog = Blog.objects.create(
-            title = input.title,
-            author = author,
-            body = input.body,
-            image = input.image,
+            title=input.title,
+            author=author,
+            body=input.body,
+            image=input.image,
         )
         blog.save()
         return CreateBlog(blog=blog)

@@ -1,14 +1,14 @@
 import graphene
 from blog.schema import Query as BlogQuery, Mutation as BlogMutation
 from account.schema import Query as AccountQuery, Mutation as AccountMutation
-from coment.schema import Query as ComentQuery, Mutation as ComentMutation
+from comment.schema import Query as CommentQuery, Mutation as CommentMutation
 
 
-class Query(BlogQuery, AccountQuery, ComentQuery):
+class Query(BlogQuery, AccountQuery, CommentQuery):
 
     pass
 
-class Mutation(BlogMutation, AccountMutation, ComentMutation):
+class Mutation(BlogMutation, AccountMutation, CommentMutation):
 
     pass
 
